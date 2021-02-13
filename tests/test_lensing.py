@@ -37,7 +37,7 @@ def run_lensing_demo(Lmin,Lmax,exp,fsky,test=False):
     F = lens+bao
     F.delete(['w0','wa','ok','nnu','tau','mnu'])
     s8 = pyfisher.get_s8(zs=[0.],params=fids)[0]
-    fids['s8'] = s8 
+    fids['s8'] = s8
     fids['om'] = (fids['omch2'] + fids['ombh2'])/(fids['H0']/100)**2.
     F1 = pyfisher.reparameterize(F,['om','s8','H0','ns','ombh2'],fids,verbose=False)
     F1.add_prior('ns',0.02)
@@ -79,8 +79,7 @@ def run_lensing_demo(Lmin,Lmax,exp,fsky,test=False):
         pyfisher.contour_plot(F,fids,'contour.png',name=None)
 
 def test_lensing_demo():
-    run_lensing_demo(4,400,'planck',0.65,test=True)
+    run_lensing_demo(4,400,'planck',0.65,test=False)
 
 if __name__ == "__main__":
     main()
-

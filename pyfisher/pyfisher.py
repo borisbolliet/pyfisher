@@ -29,6 +29,30 @@ latex_mapping = {
     's8': '$\\sigma_8$',
     'om': '$\\Omega_m$',
     's8om0.25': '$\\sigma_8 \\Omega_m^{0.25}$',
+    'a_tsz': '$A_\mathrm{tsz}$',
+    #'xi' : '$\xi_\mathrm{tszxcib}$',
+    'xi' : '$\\xi$',
+    'a_c' : '$A_\mathrm{cib}^\mathrm{c}$',
+    'a_d' : '$A_\mathrm{cib}^\mathrm{p}$',
+    'a_p_tt_15' : '$A_\mathrm{radio}^\mathrm{15}$',
+    'a_ksz' : '$A_\mathrm{kSZ}$',
+    'a_ps_100x100': '$A^\mathrm{PS}_{100x100}$',
+    'a_ps_143x143': '$A^\mathrm{PS}_{143x143}$',
+    'a_ps_217x217': '$A^\mathrm{PS}_{217x217}$',
+    'a_ps_143x217': '$A^\mathrm{PS}_{143x217}$',
+    'a_ps_100x143': '$A^\mathrm{PS}_{100x143}$',
+    'a_ps_353x353': '$A^\mathrm{PS}_{353x353}$',
+    'a_ps_217x353': '$A^\mathrm{PS}_{217x353}$',
+    'a_ps_143x353': '$A^\mathrm{PS}_{143x353}$',
+    'a_ps_545x545': '$A^\mathrm{PS}_{545x545}$',
+    'a_ps_353x545': '$A^\mathrm{PS}_{353x545}$',
+    'a_ps_217x545': '$A^\mathrm{PS}_{217x545}$',
+    'a_ps_143x545': '$A^\mathrm{PS}_{143x545}$',
+    'a_ps_857x857': '$A^\mathrm{PS}_{857x857}$',
+    'a_ps_545x857': '$A^\mathrm{PS}_{545x857}$',
+    'a_ps_353x857': '$A^\mathrm{PS}_{353x857}$',
+    'a_ps_217x857': '$A^\mathrm{PS}_{217x857}$',
+    'a_ps_143x857': '$A^\mathrm{PS}_{143x857}$',
 }
 
 def get_lensing_nl(exp):
@@ -65,7 +89,7 @@ def mkdir(dirpath,comm=None):
         comm = mpi.MPI.COMM_WORLD
     exists = os.path.exists(dirpath)
     comm.Barrier()
-    if comm.Get_rank()==0: 
+    if comm.Get_rank()==0:
         if not (exists):
             os.makedirs(dirpath)
     return exists
@@ -83,15 +107,15 @@ def prepare_output(args, message="",allow_changes=False):
     assert output_path.strip()[-1]!='/'
     mkdir(f'{output_path}')
     rname = os.path.basename(f'{output_path}')
-    with open(f'{output_path}/info.log','w') as f:
-        f.write(f'{message}\n')
-        now = datetime.datetime.now()
-        f.write(f'Current date and time : {now.strftime("%Y-%m-%d %H:%M:%S")}\n')
-        for arg in vars(args):
-            f.write(f'{arg} :  {getattr(args, arg)}\n')
-        info = get_info(path=os.path.realpath(__file__))
-        if not(allow_changes): assert not(info['changes']), "Git must not have changes to run this script."
-        f.write(pretty_info(info))
+    # with open(f'{output_path}/info.log','w') as f:
+    #     f.write(f'{message}\n')
+    #     now = datetime.datetime.now()
+    #     f.write(f'Current date and time : {now.strftime("%Y-%m-%d %H:%M:%S")}\n')
+    #     for arg in vars(args):
+    #         f.write(f'{arg} :  {getattr(args, arg)}\n')
+    #     info = get_info(path=os.path.realpath(__file__))
+    #     if not(allow_changes): assert not(info['changes']), "Git must not have changes to run this script."
+    #     f.write(pretty_info(info))
     output_root = f'{output_path}/{rname}'
     return output_root
 
@@ -106,7 +130,7 @@ def contour_plot(fisher,fiducials,fname,name='',add_marker=False,latex=True):
     if add_marker: c.add_marker(mean, parameters=parameters, marker_style="*", marker_size=100, color="r",name='')
     c.configure(usetex=False, serif=False,sigma2d=True,sigmas=[1])
     fig = c.plotter.plot()
-    fig.set_size_inches(3 + fig.get_size_inches()) 
+    fig.set_size_inches(3 + fig.get_size_inches())
     fig.savefig(fname)
 
 
@@ -148,7 +172,7 @@ def get_lensing_sn(bin_edges,ells,nls,fsky,interpolate=False,root_name='v2020112
     cinv = np.linalg.inv(cov)
     clkk = bin(cls['kk'])[...,None]
     return np.sqrt(np.einsum('ik,ik->',np.einsum('ij,ijk->ik',clkk,cinv),clkk))
-    
+
 
 def check_fisher_sanity(fmat,param_list):
     Ny,Nx = fmat.shape
@@ -176,7 +200,7 @@ def rename_fisher(fmat,pmapping):
         i = old_params.index(key)
         new_params[i] = pmapping[key]
     return FisherMatrix(fmat=fmat.values,param_list=new_params)
-    
+
 class FisherMatrix(DataFrame):
     """
     A Fisher Matrix object that subclasses pandas.DataFrame.
@@ -186,18 +210,18 @@ class FisherMatrix(DataFrame):
     You can initialize an empty one like:
     >> params = ['H0','om','sigma8']
     >> F = FisherMatrix(np.zeros((len(params),len(params))),params)
-    
+
     where params is a list of parameter names. If you already have a
     Fisher matrix 'Fmatrix' whose diagonal parameter order is specified by
     the list 'params', then you can initialize this object as:
-    
+
     >> F = FisherMatrix(Fmatrix,params)
-    
+
     This makes the code 'aware' of the parameter order in a way that makes
     handling combinations of Fishers a lot easier.
-    
+
     You can set individual elements like:
-    
+
     >> F['s8']['H0'] = 1.
 
     Once you've populated the entries, you can do things like:
@@ -229,19 +253,19 @@ class FisherMatrix(DataFrame):
 
 
     """
-    
+
     def __init__(self,fmat,param_list,delete_params=None,prior_dict=None):
         """
         fmat            -- (n,n) shape numpy array containing initial Fisher matrix for n parameters
         param_list      -- n-element list specifying diagonal order of fmat
-        delete_params   -- list of names of parameters you would like to delete from this 
-                        Fisher matrix when you initialize it. 
+        delete_params   -- list of names of parameters you would like to delete from this
+                        Fisher matrix when you initialize it.
         prior_dict      -- a dictionary that maps names of parameters to 1-sigma prior values
-                        you would like to add on initialization. This can also be done later with the 
+                        you would like to add on initialization. This can also be done later with the
                         add_prior function.
 	"""
-	
-	
+
+
         check_fisher_sanity(fmat,param_list)
         pd.DataFrame.__init__(self,fmat.copy(),columns=param_list,index=param_list)
         try:
@@ -253,7 +277,7 @@ class FisherMatrix(DataFrame):
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
             self.params = param_list
-            
+
         cols = self.columns.tolist()
         ind = self.index.tolist()
         assert set(self.params)==set(cols)
@@ -265,7 +289,7 @@ class FisherMatrix(DataFrame):
             for prior in prior_dict.keys():
                 self.add_prior(prior,prior_dict[prior])
 
-            
+
     def copy(self):
         """
         >> Fnew = F.copy()
@@ -309,7 +333,7 @@ class FisherMatrix(DataFrame):
             self[param][param] += 1./prior**2.
         except KeyError:
             if warn: print(f"WARNING: skipping prior for {param} since it was not found")
-        
+
     def sigmas(self):
         """
         Returns marginalized 1-sigma uncertainties on each parameter in the Fisher matrix.
@@ -319,7 +343,7 @@ class FisherMatrix(DataFrame):
         assert np.all(err2>0)
         errs = err2**(0.5)
         return dict(zip(self.params,errs))
-    
+
     def delete(self,params):
         """
         Given a list of parameter names 'params', deletes these from the Fisher matrix.
@@ -351,7 +375,9 @@ def get_planck_cmb_fisher(param_list,bin_edges,specs,root_name,fsky,interpolate=
     ells = np.arange(0,bin_edges.max()+1)
     nls = get_planck_nls(ells)
     cls = load_theory_dict(f'{root_name}/{os.path.basename(root_name)}_cmb_fiducial.txt',ells)
+    print(specs)
     dcls = load_derivs(root_name,param_list,ells)
+
     return band_fisher(param_list,bin_edges,specs,cls,nls,dcls,interpolate=interpolate)  * fsky
 
 
@@ -379,10 +405,14 @@ def get_planck_nls(ells):
     beams_P =  [14.,10.,7.,5.,5.]
     uK_arcmins_P = [450.,103.,81.,134.,406.]
     Ns_TT = np.asarray([(uK_arcmin*np.pi/180./60.)**2./gauss_beam(ells,fwhm)**2. for uK_arcmin,fwhm in zip(uK_arcmins_T,beams_T)])
+    # print('shape of ns_TT: ',np.shape(Ns_TT))
     Ns_PP = np.asarray([(uK_arcmin*np.pi/180./60.)**2./gauss_beam(ells,fwhm)**2. for uK_arcmin,fwhm in zip(uK_arcmins_P,beams_P)])
     N_TT = 1./(1./Ns_TT).sum(axis=0)
     N_PP = 1./(1./Ns_PP).sum(axis=0)
     nls = {}
+    # print('noise ell, nl TT')
+    # print(ells)
+    # print(N_TT)
     nls['TT'] = interp(ells,N_TT)
     nls['EE'] = interp(ells,N_PP)
     nls['BB'] = interp(ells,N_PP)
@@ -403,8 +433,11 @@ def gaussian_band_covariance(bin_edges,specs,cls_dict,nls_dict,interpolate=False
                 return bin(cdict[ab[::-1]])
             except KeyError:
                 return np.zeros((nbins,))
-            
-    
+
+    # print('noise ps')
+    # print(nls_dict['TT'](np.arange(1,2478)))
+
+
     ncomps = len(specs)
     cov = np.zeros((nbins,ncomps,ncomps))
     for i in range(ncomps):
@@ -414,6 +447,9 @@ def gaussian_band_covariance(bin_edges,specs,cls_dict,nls_dict,interpolate=False
 
             a,b = spec1
             g,d = spec2
+
+            # print(a,b)
+            # print(g,d)
 
             ag = a+g
             bd = b+d
@@ -430,7 +466,7 @@ def gaussian_band_covariance(bin_edges,specs,cls_dict,nls_dict,interpolate=False
             nl_bg = _symmz(nls_dict,bg)
 
             cov[:,i,j] = ((cl_ag+nl_ag)*(cl_bd+nl_bd)+(cl_ad+nl_ad)*(cl_bg+nl_bg))/(2*cents+1)/delta_ell
-            if i!=j: cov[:,i,j] = cov[:,j,i].copy()
+            if i!=j: cov[:,j,i] = cov[:,i,j].copy()
     return cov
 
 
@@ -441,6 +477,9 @@ def band_fisher(param_list,bin_edges,specs,cls_dict,nls_dict,derivs_dict,interpo
     ncomps = len(specs)
 
     cov = gaussian_band_covariance(bin_edges,specs,cls_dict,nls_dict,interpolate=interpolate)
+    # print('SHAPE COV MAT')
+    # print(np.shape(cov))
+    # print(cov)
     cinv = np.linalg.inv(cov)
 
     nparams = len(param_list)
@@ -478,7 +517,7 @@ def get_param_info(param_file,exclude=None,get_range=False):
         fid = p[1]
         fids[param] = fid
         pstr = str(p[2]).strip()
-        if pstr[-1]=='%': 
+        if pstr[-1]=='%':
             step = float(pstr[:-1])*np.abs(fid)/100.
         else:
             step = float(pstr)
@@ -512,7 +551,7 @@ def _camb_to_class(params):
     #params['m_ncdm'] = ','.join([str(params.pop('mnu')/3.)]*3)
     params['N_ncdm'] = 1
     params['m_ncdm'] = params.pop('mnu')
-    
+
     # params['use_ppf'] = 'no'
     # params['fluid_equation_of_state'] = 'CLP'
     # params['w0_fld'] = params.pop('w0')
@@ -576,8 +615,8 @@ def set_defaults(params):
         if key not in params.keys(): params[key] = ds[key]
     return params
 
-    
-    
+
+
 
 def set_camb_pars(params=None,de='ppf'):
     """
@@ -591,8 +630,8 @@ def set_camb_pars(params=None,de='ppf'):
     params = set_defaults(params)
     pars = camb.CAMBparams()
     #This function sets up CosmoMC-like settings, with one massive neutrino and helium set using BBN consistency
-    pars.set_cosmology(H0=params['H0'], ombh2=params['ombh2'], 
-                       omch2=params['omch2'], mnu=params['mnu'], 
+    pars.set_cosmology(H0=params['H0'], ombh2=params['ombh2'],
+                       omch2=params['omch2'], mnu=params['mnu'],
                        omk=params['ok'], tau=params['tau'],nnu=params['nnu'],
                        cosmomc_theta=params['ctheta'],thetastar=params['thetastar'])
     pars.InitPower.set_params(As=params['As'], ns=params['ns'], r=params['r'])
@@ -614,7 +653,7 @@ def get_s8(zs=[0.],params=None,nonlinear=False,kmax=5.2,**kwargs):
         raise ValueError
     pars = set_camb_pars(params=params,**kwargs)
     pars.set_matter_power(redshifts=zs,kmax=kmax,nonlinear=nonlinear,silent=True)
-    if nonlinear: 
+    if nonlinear:
         pars.NonLinear = model.NonLinear_both
     else:
         pars.NonLinear = model.NonLinear_none
@@ -689,7 +728,7 @@ def load_bao_experiment_rs_dV_diagonal(exp_name,data_path,boss_include=['6df','m
         zs = []
         sig_pers = []
         for line in array:
-            if line[0]  in boss_include: 
+            if line[0]  in boss_include:
                 zs.append(line[1])
                 sig_pers.append(line[2])
     else:
@@ -712,7 +751,7 @@ def get_cls(params=None,lmax=3000,accurate=False,engine='camb',de='ppf',nonlinea
         else:
             pars.NonLinear = model.NonLinear_none
         return load_theory(pars,lpad=lmax+2)
-        
+
     elif engine=='class':
         from classy import Class
         cosmo = Class()
@@ -741,7 +780,7 @@ def deriv_s8_wrt_param(iparam,deriv_root):
         raise ValueError
 
 def deriv_om_wrt_param(iparam,fiducials,verbose=True):
-    if iparam=='om': 
+    if iparam=='om':
         return 1
     fs = fiducials
     h = fs['H0']/100.
@@ -758,7 +797,7 @@ def deriv_om_wrt_param(iparam,fiducials,verbose=True):
     else:
         if verbose: print(f'Setting om w.r.t. {iparam} to zero.')
         return 0
-    
+
 
 def get_itrans_deriv(oparam,iparam,fiducials,deriv_root,verbose=True):
     """
@@ -771,7 +810,7 @@ def get_itrans_deriv(oparam,iparam,fiducials,deriv_root,verbose=True):
     This typically has to be inverted.
     """
 
-    if iparam==oparam: 
+    if iparam==oparam:
         return 1
 
     fs = fiducials
@@ -802,7 +841,7 @@ def get_itrans_deriv(oparam,iparam,fiducials,deriv_root,verbose=True):
     else:
         if verbose: print(f'Setting {oparam} w.r.t. {iparam} to zero.')
         return 0.
-    
+
 
 def reparameterize(Fmat,oparams,fiducials,deriv_root='v20201120_s8_derivs',verbose=True):
     """
@@ -923,7 +962,7 @@ def get_info(package=None,path=None,validate=True):
             assert version is not None
             assert 'site-packages' in path
     return info
-    
+
 
 def validate_map_type(mapXYType):
     assert not(re.search('[^TEB]', mapXYType)) and (len(mapXYType)==2), \
@@ -936,7 +975,7 @@ class TheorySpectra:
     set of discrete Cls and provides lensed and unlensed Cl functions
     for use in integrals
     '''
-    
+
 
     def __init__(self):
 
@@ -956,11 +995,11 @@ class TheorySpectra:
             print(self._gCl[keyName](ells[ells<lpad]))
 
         else:
-            fillval = 0.            
+            fillval = 0.
             self._gCl[keyName] = interp1d(ells[ells<lpad],Cls[ells<lpad],bounds_error=False,fill_value=fillval)
-        
 
-        
+
+
 
     def gCl(self,keyName,ell):
 
@@ -973,12 +1012,12 @@ class TheorySpectra:
                 return self.lCl(keyName[1:],ell)
             else:
                 raise ValueError
-        
+
         try:
             return self._gCl[keyName](ell)
         except:
             return self._gCl[keyName[::-1]](ell)
-        
+
     def loadCls(self,ell,Cl,XYType="TT",lensed=False,interporder="linear",lpad=9000,fill_zero=True):
 
         # Implement ellnorm
@@ -992,9 +1031,9 @@ class TheorySpectra:
             f = lambda x: np.piecewise(x, [x<=lpad,x>lpad], [lambda y: interp1d(ell[ell<lpad],Cl[ell<lpad],bounds_error=False,fill_value=0.)(y),lambda y: fillval*(lpad/y)**4.])
 
         else:
-            fillval = 0.            
+            fillval = 0.
             f = interp1d(ell[ell<lpad],Cl[ell<lpad],bounds_error=False,fill_value=fillval)
-                    
+
         if lensed:
             self._lCl[XYType]=f
         else:
@@ -1002,7 +1041,7 @@ class TheorySpectra:
 
     def _Cl(self,XYType,ell,lensed=False):
 
-            
+
         mapXYType = XYType.upper()
         validate_map_type(mapXYType)
 
@@ -1010,7 +1049,7 @@ class TheorySpectra:
         ell = np.array(ell)
 
         try:
-            if lensed:    
+            if lensed:
                 retlist = np.array(self._lCl[mapXYType](ell))
                 return retlist
             else:
@@ -1034,4 +1073,3 @@ class TheorySpectra:
             assert not(self.always_lensed)
             return self.uCl(XYType,ell)
         return self._Cl(XYType,ell,lensed=True)
-    

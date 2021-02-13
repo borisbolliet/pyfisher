@@ -4,6 +4,12 @@ import os,sys,shutil
 import pyfisher
 from pyfisher import mpi
 
+# COMMAND FROM MAT:
+# OMP_NUM_THREADS=20 mpirun -np 4 python -u bin/save_cmb.py -o /scratch/r/rbond/msyriac/data/depot/pyfisher/v20201120_cmb_derivs -p input/steps_v1.txt --accurate
+
+# COMMAND BORIS
+# OMP_NUM_THREADS=20 mpirun -np 4 python -u bin/save_cmb.py -o /scratch/r/rbond/msyriac/data/depot/pyfisher/v20201120_cmb_derivs -p input/steps_v1.txt --accurate
+
 import argparse
 # Parse command line
 parser = argparse.ArgumentParser(description='Do a thing.')
@@ -36,7 +42,7 @@ for task in my_tasks:
     else:
         pparams[param] = val
 
-    theory = pyfisher.get_cls(params=pparams,lmax=args.lmax,accurate=args.accurate,engine='camb',de='ppf',nonlinear=not(args.linear)) 
+    theory = pyfisher.get_cls(params=pparams,lmax=args.lmax,accurate=args.accurate,engine='camb',de='ppf',nonlinear=not(args.linear))
     ells = np.arange(args.lmax)
     cfunc = theory.lCl if args.lensed else theory.uCl
     saves = []

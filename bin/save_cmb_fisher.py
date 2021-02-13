@@ -4,6 +4,9 @@ import os,sys,shutil
 import pyfisher
 from pyfisher import mpi
 
+# COMMMAND BORIS:
+# $ python bin/save_cmb_fisher.py -i pyfisher/data/v20201120_cmb_derivs -o pyfisher/data/test_cmb_fisher_boris
+
 import argparse
 # Parse command line
 parser = argparse.ArgumentParser(description='Do a thing.')
