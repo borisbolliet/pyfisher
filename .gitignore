@@ -143,3 +143,5 @@ bin/save_cmb_fisher_boris.py
 bin/save_cmb_boris.py
 tests/test_atsz_snr_one_poisson_indep_amps.py
 sshproxy.sh
+
+.DS_Store

@@ -8,6 +8,8 @@ from scipy import interpolate
 import pandas as pd
 import subprocess
 
+#$ COMMAND
+# $ python tests/test_planck_fisher.py -i pyfisher/data/v20201120_cmb_derivs -o pyfisher/data/test_cmb_fisher_boris
 path_to_bplike = '/Users/boris/Work/CLASS-SZ/SO-SZ/bplike/'
 output_dir_bplike = path_to_bplike + 'output/'
 
@@ -52,7 +54,7 @@ def run_lensing_demo(Lmin,Lmax,exp,fsky,args,test=False):
 
     # param_list = param_list_latex#list(fids.keys())
     # F1 = pyfisher.get_planck_cmb_fisher(param_list,np.arange(2,31),['TT'],args.input,fsky=1)
-    F = pf.get_planck_cmb_fisher(param_list_latex,np.arange(l_min,l_max+1),['TT'],args.input,fsky=1)
+    F = pf.get_planck_cmb_fisher(param_list_latex,np.arange(l_min,l_max+1),['TT','EE','TE'],args.input,fsky=1)
 
     print('Fisher mat')
     print(F)
@@ -62,6 +64,7 @@ def run_lensing_demo(Lmin,Lmax,exp,fsky,args,test=False):
     # print(sigmas)
     df = pd.DataFrame([sigmas])
     print(df)
+    exit(0)
 
 
 
@@ -418,7 +421,7 @@ def run_lensing_demo(Lmin,Lmax,exp,fsky,args,test=False):
 
 
 
-    pf.contour_plot(F,fids,'contour_planck_boris.pdf',name=None)
+    # pf.contour_plot(F,fids,'contour_planck_boris.pdf',name=None)
 
 
 
@@ -554,7 +557,7 @@ def compute_noise_coadd_mat():
 
 def compute_noise_coadd():
     # Planck freqs -- no 545 or 857
-    Nfreqs_Planck=7 #9
+    Nfreqs_Planck= 8 #9
     freqs_Planck = []
     freqs_Planck.append('030')
     freqs_Planck.append('044')

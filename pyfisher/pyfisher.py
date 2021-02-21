@@ -412,7 +412,8 @@ def get_planck_nls(ells):
     nls = {}
     # print('noise ell, nl TT')
     # print(ells)
-    # print(N_TT)
+    print('shape Ns_TT: ', np.shape(Ns_TT))
+    print(Ns_TT)
     nls['TT'] = interp(ells,N_TT)
     nls['EE'] = interp(ells,N_PP)
     nls['BB'] = interp(ells,N_PP)
@@ -444,17 +445,19 @@ def gaussian_band_covariance(bin_edges,specs,cls_dict,nls_dict,interpolate=False
         for j in range(i,ncomps):
             spec1 = specs[i]
             spec2 = specs[j]
-
+            print(spec1,spec2)
+            print(type(spec1))
             a,b = spec1
             g,d = spec2
 
-            # print(a,b)
-            # print(g,d)
+            print(a,b)
+            print(g,d)
 
             ag = a+g
             bd = b+d
             ad = a+d
             bg = b+g
+
 
             cl_ag = _symmz(cls_dict,ag)
             nl_ag = _symmz(nls_dict,ag)
@@ -465,8 +468,23 @@ def gaussian_band_covariance(bin_edges,specs,cls_dict,nls_dict,interpolate=False
             cl_bg = _symmz(cls_dict,bg)
             nl_bg = _symmz(nls_dict,bg)
 
+            
+            print('a,b :',a,b)
+            print('g,d :',g,d)
+            print('a,g,nl_ag :', a,g,nl_ag)
+            print('a,g,cl_ag :', a,g,cl_ag)
+            print('b,d,nl_bd :', b,d,nl_bd)
+            print('b,d,cl_bd :', b,d,cl_bd)
+            print('a,d,nl_ad :', a,d,nl_ad)
+            print('a,d,cl_ad :', a,d,cl_ad)
+            print('b,g,nl_bg :', b,g,nl_bg)
+            print('b,g,cl_bg :', b,g,cl_bg)
+
+
+
             cov[:,i,j] = ((cl_ag+nl_ag)*(cl_bd+nl_bd)+(cl_ad+nl_ad)*(cl_bg+nl_bg))/(2*cents+1)/delta_ell
             if i!=j: cov[:,j,i] = cov[:,i,j].copy()
+
     return cov
 
 
